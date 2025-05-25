@@ -1,1 +1,363 @@
-<!DOCTYPE html><html lang="ar" dir="rtl"><head>    <meta charset="UTF-8">    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>نظام المبيعات</title>    <link rel="stylesheet" href="style.css"></head><body>    <div class="container">        <header>            <h1>نظام إدارة المبيعات</h1>            <nav>                <button id="productsTab">المنتجات</button>                <button id="salesTab">المبيعات</button>                <button id="customersTab">العملاء</button>                <button id="reportsTab">التقارير</button>            </nav>        </header>        <main>            <!-- قسم المنتجات -->            <section id="productsSection" class="active">                <h2>إدارة المنتجات</h2>                <div class="form-group">                    <input type="text" id="productName" placeholder="اسم المنتج">                    <input type="number" id="productPrice" placeholder="السعر">                    <input type="number" id="productQuantity" placeholder="الكمية">                    <button id="addProduct">إضافة منتج</button>                </div>                <table id="productsTable">                    <thead>                        <tr>                            <th>ID</th>                            <th>الاسم</th>                            <th>السعر</th>                            <th>الكمية</th>                            <th>الإجراءات</th>                        </tr>                    </thead>                    <tbody id="productsList"></tbody>                </table>            </section>            <!-- قسم المبيعات -->            <section id="salesSection">                <h2>إدارة المبيعات</h2>                <div class="form-group">                    <select id="saleProduct">                        <option value="">اختر منتج</option>                    </select>                    <input type="number" id="saleQuantity" placeholder="الكمية" min="1">                    <select id="saleCustomer">                        <option value="">اختر عميل</option>                    </select>                    <button id="addSale">تسجيل بيع</button>                </div>                <table id="salesTable">                    <thead>                        <tr>                            <th>ID</th>                            <th>المنتج</th>                            <th>الكمية</th>                            <th>السعر</th>                            <th>المجموع</th>                            <th>العميل</th>                            <th>التاريخ</th>                            <th>الإجراءات</th>                        </tr>                    </thead>                    <tbody id="salesList"></tbody>                </table>            </section>            <!-- قسم العملاء -->            <section id="customersSection">                <h2>إدارة العملاء</h2>                <div class="form-group">                    <input type="text" id="customerName" placeholder="اسم العميل">                    <input type="text" id="customerPhone" placeholder="الهاتف">                    <input type="email" id="customerEmail" placeholder="البريد الإلكتروني">                    <button id="addCustomer">إضافة عميل</button>                </div>                <table id="customersTable">                    <thead>                        <tr>                            <th>ID</th>                            <th>الاسم</th>                            <th>الهاتف</th>                            <th>البريد الإلكتروني</th>                            <th>الإجراءات</th>                        </tr>                    </thead>                    <tbody id="customersList"></tbody>                </table>            </section>            <!-- قسم التقارير -->            <section id="reportsSection">                <h2>التقارير</h2>                <div class="report-filters">                    <input type="date" id="reportStartDate">                    <input type="date" id="reportEndDate">                    <button id="generateReport">توليد التقرير</button>                </div>                <div class="report-results">                    <div class="report-card">                        <h3>إجمالي المبيعات</h3>                        <p id="totalSalesAmount">0</p>                    </div>                    <div class="report-card">                        <h3>عدد المعاملات</h3>                        <p id="totalTransactions">0</p>                    </div>                    <div class="report-card">                        <h3>أفضل المنتجات مبيعاً</h3>                        <ul id="topProducts"></ul>                    </div>                </div>                <canvas id="salesChart"></canvas>            </section>        </main>    </div>    <!-- نموذج التعديل -->    <div id="editModal" class="modal">        <div class="modal-content">            <span class="close">&times;</span>            <div id="modalContent"></div>        </div>    </div>    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>    <script src="script.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام المبيعات المتكامل</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- شريط التنقل العلوي -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fas fa-store"></i>
+                <h1>نظام المبيعات</h1>
+            </div>
+            <nav class="main-nav">
+                <button id="dashboardTab" class="active"><i class="fas fa-home"></i> الرئيسية</button>
+                <button id="productsTab"><i class="fas fa-boxes"></i> المنتجات</button>
+                <button id="salesTab"><i class="fas fa-shopping-cart"></i> المبيعات</button>
+                <button id="customersTab"><i class="fas fa-users"></i> العملاء</button>
+                <button id="reportsTab"><i class="fas fa-chart-bar"></i> التقارير</button>
+                <div class="user-menu">
+                    <span id="usernameDisplay"></span>
+                    <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i></button>
+                    <button id="settingsBtn"><i class="fas fa-cog"></i></button>
+                </div>
+            </nav>
+        </header>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="app-content">
+            <!-- لوحة التحكم -->
+            <section id="dashboardSection" class="active">
+                <h2><i class="fas fa-tachometer-alt"></i> لوحة التحكم</h2>
+                <div class="dashboard-cards">
+                    <div class="card card-primary">
+                        <h3>إجمالي المبيعات اليوم</h3>
+                        <p id="todaySales">0 <span class="currency-display">ر.س</span></p>
+                        <span class="card-icon"><i class="fas fa-money-bill-wave"></i></span>
+                    </div>
+                    <div class="card card-warning">
+                        <h3>المنتجات المنخفضة</h3>
+                        <p id="lowStockItems">0</p>
+                        <span class="card-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                    </div>
+                    <div class="card card-success">
+                        <h3>العملاء الجدد</h3>
+                        <p id="newCustomers">0</p>
+                        <span class="card-icon"><i class="fas fa-user-plus"></i></span>
+                    </div>
+                    <div class="card card-info">
+                        <h3>إجمالي المنتجات</h3>
+                        <p id="totalProducts">0</p>
+                        <span class="card-icon"><i class="fas fa-box-open"></i></span>
+                    </div>
+                </div>
+
+                <div class="quick-actions">
+                    <button id="quickSale" class="action-btn action-primary">
+                        <i class="fas fa-plus"></i> بيع سريع
+                    </button>
+                    <button id="quickProduct" class="action-btn action-success">
+                        <i class="fas fa-box"></i> إضافة منتج
+                    </button>
+                    <button id="quickCustomer" class="action-btn action-info">
+                        <i class="fas fa-user"></i> إضافة عميل
+                    </button>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="salesTrendChart"></canvas>
+                </div>
+            </section>
+
+            <!-- قسم المنتجات -->
+            <section id="productsSection">
+                <div class="section-header">
+                    <h2><i class="fas fa-boxes"></i> إدارة المنتجات</h2>
+                    <div class="section-actions">
+                        <button id="exportProducts" class="btn-secondary"><i class="fas fa-file-export"></i> تصدير</button>
+                        <button id="importProducts" class="btn-secondary"><i class="fas fa-file-import"></i> استيراد</button>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <input type="text" id="productName" placeholder="اسم المنتج" class="form-input">
+                    <input type="number" id="productPrice" placeholder="السعر" class="form-input" min="0" step="0.01">
+                    <input type="number" id="productQuantity" placeholder="الكمية" class="form-input" min="0">
+                    <select id="productCategory" class="form-input">
+                        <option value="">اختر فئة</option>
+                        <option value="electronics">إلكترونيات</option>
+                        <option value="clothing">ملابس</option>
+                        <option value="food">أغذية</option>
+                        <option value="other">أخرى</option>
+                    </select>
+                    <button id="addProduct" class="btn-primary"><i class="fas fa-plus"></i> إضافة منتج</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>الاسم</th>
+                                <th>الفئة</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>تاريخ الإضافة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsList"></tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button id="prevProducts" disabled><i class="fas fa-chevron-right"></i></button>
+                    <span id="productsPageInfo">الصفحة 1 من 1</span>
+                    <button id="nextProducts" disabled><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+
+            <!-- قسم المبيعات -->
+            <section id="salesSection">
+                <h2><i class="fas fa-shopping-cart"></i> إدارة المبيعات</h2>
+                
+                <div class="form-group">
+                    <select id="saleProduct" class="form-input">
+                        <option value="">اختر منتج</option>
+                    </select>
+                    <input type="number" id="saleQuantity" placeholder="الكمية" min="1" class="form-input">
+                    <select id="saleCustomer" class="form-input">
+                        <option value="">اختر عميل</option>
+                    </select>
+                    <select id="salePayment" class="form-input">
+                        <option value="cash">نقدي</option>
+                        <option value="credit">آجل</option>
+                        <option value="card">بطاقة</option>
+                    </select>
+                    <button id="addSale" class="btn-primary"><i class="fas fa-cash-register"></i> تسجيل بيع</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="salesTable">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>المنتج</th>
+                                <th>الكمية</th>
+                                <th>السعر</th>
+                                <th>المجموع</th>
+                                <th>العميل</th>
+                                <th>طريقة الدفع</th>
+                                <th>التاريخ</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesList"></tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button id="prevSales" disabled><i class="fas fa-chevron-right"></i></button>
+                    <span id="salesPageInfo">الصفحة 1 من 1</span>
+                    <button id="nextSales" disabled><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+
+            <!-- قسم العملاء -->
+            <section id="customersSection">
+                <h2><i class="fas fa-users"></i> إدارة العملاء</h2>
+                
+                <div class="form-group">
+                    <input type="text" id="customerName" placeholder="اسم العميل" class="form-input">
+                    <input type="text" id="customerPhone" placeholder="الهاتف" class="form-input">
+                    <input type="email" id="customerEmail" placeholder="البريد الإلكتروني" class="form-input">
+                    <input type="text" id="customerAddress" placeholder="العنوان" class="form-input">
+                    <button id="addCustomer" class="btn-primary"><i class="fas fa-user-plus"></i> إضافة عميل</button>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="customersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>الاسم</th>
+                                <th>الهاتف</th>
+                                <th>البريد</th>
+                                <th>العنوان</th>
+                                <th>تاريخ التسجيل</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersList"></tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button id="prevCustomers" disabled><i class="fas fa-chevron-right"></i></button>
+                    <span id="customersPageInfo">الصفحة 1 من 1</span>
+                    <button id="nextCustomers" disabled><i class="fas fa-chevron-left"></i></button>
+                </div>
+            </section>
+
+            <!-- قسم التقارير -->
+            <section id="reportsSection">
+                <div class="section-header">
+                    <h2><i class="fas fa-chart-bar"></i> التقارير والإحصائيات</h2>
+                    <div class="section-actions">
+                        <button id="printReport" class="btn-secondary"><i class="fas fa-print"></i> طباعة</button>
+                    </div>
+                </div>
+                
+                <div class="report-filters">
+                    <div class="filter-group">
+                        <label for="reportType">نوع التقرير:</label>
+                        <select id="reportType" class="form-input">
+                            <option value="daily">يومي</option>
+                            <option value="weekly">أسبوعي</option>
+                            <option value="monthly">شهري</option>
+                            <option value="custom">مخصص</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group" id="customDateFilter" style="display:none;">
+                        <label for="reportStartDate">من:</label>
+                        <input type="date" id="reportStartDate" class="form-input">
+                        <label for="reportEndDate">إلى:</label>
+                        <input type="date" id="reportEndDate" class="form-input">
+                    </div>
+                    
+                    <button id="generateReport" class="btn-primary"><i class="fas fa-sync-alt"></i> توليد التقرير</button>
+                </div>
+                
+                <div class="report-results">
+                    <div class="report-card">
+                        <h3>إجمالي المبيعات</h3>
+                        <p id="totalSalesAmount">0 <span class="currency-display">ر.س</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>عدد المعاملات</h3>
+                        <p id="totalTransactions">0</p>
+                    </div>
+                    <div class="report-card">
+                        <h3>متوسط قيمة الفاتورة</h3>
+                        <p id="averageSale">0 <span class="currency-display">ر.س</span></p>
+                    </div>
+                    <div class="report-card">
+                        <h3>أفضل عملاء</h3>
+                        <p id="topCustomer">لا يوجد بيانات</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+                
+                <div class="table-responsive">
+                    <table id="reportDetailsTable">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>عدد الفواتير</th>
+                                <th>إجمالي المبيعات</th>
+                                <th>ضريبة</th>
+                                <th>صافي المبيعات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportDetails"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- نموذج تسجيل الدخول -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>تسجيل الدخول</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user"></i> اسم المستخدم</label>
+                    <input type="text" id="username" required class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="password"><i class="fas fa-lock"></i> كلمة المرور</label>
+                    <input type="password" id="password" required class="form-input">
+                </div>
+                <button type="submit" class="btn-primary btn-block"><i class="fas fa-sign-in-alt"></i> تسجيل الدخول</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- نموذج التعديل -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="editModalTitle">تعديل</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- نموذج الإعدادات -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> الإعدادات</h2>
+                <span class="close">&times;</span>
+            </div>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="currencySetting">العملة:</label>
+                    <select id="currencySetting" class="form-input">
+                        <option value="ر.س">ريال سعودي (ر.س)</option>
+                        <option value="$">دولار ($)</option>
+                        <option value="€">يورو (€)</option>
+                        <option value="ج.م">جنيه مصري (ج.م)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="taxRateSetting">معدل الضريبة (%):</label>
+                    <input type="number" id="taxRateSetting" min="0" max="100" step="0.1" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label for="dateFormatSetting">تنسيق التاريخ:</label>
+                    <select id="dateFormatSetting" class="form-input">
+                        <option value="dd/MM/yyyy">يوم/شهر/سنة (25/12/2023)</option>
+                        <option value="MM/dd/yyyy">شهر/يوم/سنة (12/25/2023)</option>
+                        <option value="yyyy-MM-dd">سنة-شهر-يوم (2023-12-25)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lowStockThreshold">حد تنبيه المخزون المنخفض:</label>
+                    <input type="number" id="lowStockThreshold" min="1" class="form-input">
+                </div>
+                
+                <button type="submit" class="btn-primary btn-block"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- استيراد المكتبات -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- ملفات النظام -->
+    <script src="modules/auth.js"></script>
+    <script src="modules/database.js"></script>
+    <script src="modules/reports.js"></script>
+    <script src="modules/invoices.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
